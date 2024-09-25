@@ -1,12 +1,19 @@
 # HMoRA
 # Introduction
 
-HMoRA is a fine-tuning method for LLMs that combines LoRA and MoE. The base models currently supported include:
+HMoRA is a fine-tuning method for LLMs that combines LoRA and MoE.
+The base models currently supported include:
 - BLOOM
-- LLaMA
+- LLaMA, LLaMA 2, LLaMA 3, LLaMA 3.1
 - Qwen2
 
-Here, we provide a sample HMoRA training script and a sample training data (each sample consists of a source text and a target text). The training script provided is written for Qwen2. Fine-tuning other base LLMs requires adjusting the input and output format according to the specific tokens of the LLM. We also provide code in `example_test.ipynb` that demonstrates how to load the saved HMoRA weights and perform testing.
+Here, we provide an example HMoRA training script `example_train.py` and a mini training data 
+(each example in training data consists of a source text and a target text). 
+The training script provided is written for Qwen2. 
+Fine-tuning other base LLMs requires adjusting the input and output format 
+according to the specific tokens of the LLM. 
+We also provide code in `example_test.ipynb` that demonstrates how 
+to load the saved HMoRA checkpoint and perform testing.
 
 # Environment
 
@@ -19,8 +26,8 @@ datasets 2.18.0
 
 # Quick Start
 
-Fine-tuning script: `example_train.py`
-train 
+Example command for fine-tuning script: `example_train.py`
+
 ```shell
 python example_train.py \
 --model Qwen/Qwen2-1.5B \
