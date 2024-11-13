@@ -418,7 +418,8 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        return x + self.pe[:, :x.size(1)]
+        # x shape: (batch_size, seq_len, hidden_size)
+        return x + self.pe[:, -x.size(1):, :]
 
 
 class TaskEncoder(nn.Module):
@@ -440,9 +441,9 @@ class TaskEncoder(nn.Module):
 
         task_embedding = self.task_embedding(torch.tensor([0], device=src.device))
         task_embedding = task_embedding.expand(src.shape[0], -1, -1)
+        src = self.pos_encoder(src)
         src = torch.cat([src, task_embedding], dim=1)
         src = src.transpose(0, 1)  # (seq_len, batch_size, hidden_size)
-        src = self.pos_encoder(src)
         src_key_padding_mask = torch.cat([src_key_padding_mask, torch.ones(src_key_padding_mask.shape[0], 1,
                                                                            device=src_key_padding_mask.device,
                                                                            dtype=src_key_padding_mask.dtype)], dim=1)

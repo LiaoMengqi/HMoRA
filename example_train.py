@@ -91,7 +91,7 @@ def train(model: PeftModel,
         # div loss for task router
         if model.task_encoder is not None and model.router_manager.use_div_loss:
             prefix_tensors = tokenizer(batched_source, padding=True, truncation=True,
-                                       return_tensors='pt', max_length=1000).to(device)
+                                       return_tensors='pt', max_length=1000, add_special_tokens=False).to(device)
             embedding = getattr(model.base_model, TARGET_MODULE_TYPE[model.config.model_type]['embed'])
             hidden_states = embedding(prefix_tensors.input_ids)
             task_embed = model.task_encoder(hidden_states, prefix_tensors.attention_mask)
@@ -118,7 +118,8 @@ def train(model: PeftModel,
                 if model.task_encoder is not None:
                     batched_source = batched_source + batch['source']
                     prefix_tensors = tokenizer(batch['source'], padding=True, truncation=True,
-                                               return_tensors='pt', max_length=1024).to(device)
+                                               return_tensors='pt', max_length=1024, add_special_tokens=False).to(
+                        device)
                     embedding = getattr(model.base_model, TARGET_MODULE_TYPE[model.config.model_type]['embed'])
                     hidden_states = embedding(prefix_tensors.input_ids)
                     task_embed = model.task_encoder(hidden_states, prefix_tensors.attention_mask)
@@ -128,7 +129,8 @@ def train(model: PeftModel,
                                           [format_target(i) for i in batch['target']],
                                           padding=True,
                                           truncation=True, return_token_type_ids=True,
-                                          return_tensors='pt', max_length=1024).to(device)
+                                          return_tensors='pt', max_length=1024
+                                          , add_special_tokens=False).to(device)
 
                 labels = input_tensors.input_ids.clone()
                 # ignore padding and input
@@ -167,6 +169,7 @@ def train(model: PeftModel,
                 del loss
             if finished:
                 break
+
     loop()
     save_check_point(model, args, tokenizer)
     bar.close()
