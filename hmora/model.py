@@ -347,7 +347,7 @@ class LoRA(nn.Module):
         self.dtype_ = config.torch_dtype
         self.dropout_tate = config.dropout
         self.dropout = nn.Dropout(config.dropout)
-        self.scaling = config.lora_alpha / config.lora_r
+        self.scaling = config.lora_alpha / math.sqrt(config.lora_r)
         self.rank = config.lora_r
         self.lora_a = nn.Parameter(
             torch.empty((self.rank, self.in_features), dtype=self.dtype_))
@@ -577,8 +577,7 @@ def _apply_hmora(model, config: HMoRAConfig) -> PeftModel:
 
     token_router_list = nn.ModuleList()
     task_router_list = nn.ModuleList()
-
-    # apply HMoRA for each layer
+    # apply for each layer
     for layer_id in sorted(layer_list.keys()):
         module = layer_list[layer_id]
         token_routers, task_routers = _apply_for_layer(module, layer_id, config)
@@ -594,13 +593,11 @@ def _apply_hmora(model, config: HMoRAConfig) -> PeftModel:
     else:
         task_encoder = None
     model.task_encoder = task_encoder
-
     # router manager
     router_manager = RouterManager(config, task_router_list, token_router_list)
     model.router_manager = router_manager
 
     trainable_modules = ['router', 'mora', 'lora', 'task_encoder']
-
     # freeze parameters
     for param_name, param in model.named_parameters():
         if any(target in param_name for target in trainable_modules):
@@ -610,7 +607,7 @@ def _apply_hmora(model, config: HMoRAConfig) -> PeftModel:
 
     # overwrite save_pretrained
     model.save_pretrained = types.MethodType(_save_pretrained, model)
-
+    # model.peft_config = config
     setattr(model, 'peft_config', config)
     return model
 
@@ -621,7 +618,7 @@ def _save_pretrained(self: nn.Module, path):
     trainable_params = dict()
     for name, param in self.named_parameters():
         if param.requires_grad:
-            trainable_params[name] = param
+            trainable_params[name] = param.detach().cpu()
     config = self.peft_config.export()
     torch.save(trainable_params, path + '/' + 'adapter_model.safetensors')
     config['torch_dtype'] = None
