@@ -3,7 +3,7 @@ from transformers import AutoModelForCausalLM, AutoConfig, AutoTokenizer
 from hmora import HMoRAConfig, get_peft_model
 
 DEFAULT_TARGET_MODULES = {
-    'llama': ['q_proj', 'k_proj', 'v_proj', 'gate_proj', 'up_proj', 'down_proj'],
+    'llama': ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'],
     'bloom': ['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h'],
     'qwen2': ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']
 }
