@@ -1,25 +1,21 @@
-import datasets
-from torch.optim import AdamW
-from torch.utils.data import DataLoader
-from transformers import AutoTokenizer
-import transformers
-
-from utils.func import set_seed, set_device, save_check_point
-from utils.setup import setup
-import torch
 import re
-import random
-from tqdm import tqdm
+from typing import Optional
+
+import datasets
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from typing import Optional
-from transformers import PreTrainedModel, PreTrainedTokenizer
-from transformers import get_scheduler
+import transformers
 from peft import PeftModel
+from torch.optim import AdamW
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from transformers import AutoTokenizer
+from transformers import PreTrainedTokenizer
+from transformers import get_scheduler
 
-import numpy as np
-from hmora import SUPPORTED_SEQ2SEQ_MODELS, SUPPORTED_CAUSAL_MODELS, TARGET_MODULE_TYPE
+from hmora import TARGET_MODULE_TYPE
+from utils.func import set_seed, set_device, save_check_point
+from utils.setup import setup
 
 transformers.logging.set_verbosity_error()
 
@@ -64,14 +60,14 @@ def create_scheduler(optimizer, args):
     return scheduler
 
 
-def format_source(source):
-    prefix = '<|im_start|>system\nYou are a helpful assistant.\n<|im_end|>\n<|im_start|>human\n'
-    source = prefix + source + "\n<|im_end|>\n"
-    return source
+def format_source(source, system_prompt="You are a helpful assistant."):
+    prefix = ('<|im_start|>system\n{system_prompt}\n<|im_end|>\n'
+              '<|im_start|>human\n{user_input}\n<|im_end|>\n<|im_start|>assistant\n')
+    return prefix.format(system_prompt=system_prompt, user_input=source)
 
 
 def format_target(target):
-    target = '<|im_start|>assistant\n' + target + '<|endoftext|>'
+    target = target + '<|endoftext|>'
     return target
 
 
@@ -113,11 +109,11 @@ def train(model: PeftModel,
         batched_source = []
 
         for epoch in range(args.num_epochs):
-            for batch in train_dataloader:
+            for mini_batch in train_dataloader:
                 model.train()
                 if model.task_encoder is not None:
-                    batched_source = batched_source + batch['source']
-                    prefix_tensors = tokenizer(batch['source'], padding=True, truncation=True,
+                    batched_source = batched_source + mini_batch['source']
+                    prefix_tensors = tokenizer(mini_batch['source'], padding=True, truncation=True,
                                                return_tensors='pt', max_length=1024, add_special_tokens=False).to(
                         device)
                     embedding = getattr(model.base_model, TARGET_MODULE_TYPE[model.config.model_type]['embed'])
@@ -125,8 +121,8 @@ def train(model: PeftModel,
                     task_embed = model.task_encoder(hidden_states, prefix_tensors.attention_mask)
                     model.router_manager.set_task_weight(task_embed)
 
-                input_tensors = tokenizer([format_source(i) for i in batch['source']],
-                                          [format_target(i) for i in batch['target']],
+                input_tensors = tokenizer([format_source(i) for i in mini_batch['source']],
+                                          [format_target(i) for i in mini_batch['target']],
                                           padding=True,
                                           truncation=True, return_token_type_ids=True,
                                           return_tensors='pt', max_length=1024
@@ -198,7 +194,7 @@ def main(args):
             speedup_param_param.append(param)
         else:
             norm_param.append(param)
-    # apply higher learning rate for LoRA B
+    # apply higher learning rate for LoRA B (LoRA+)
     optimizer = AdamW([{'params': norm_param, 'lr': args.lr},
                        {'params': speedup_param_param, 'lr': args.eta_b * args.lr}],
                       weight_decay=args.weight_decay)
