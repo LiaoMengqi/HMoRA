@@ -2,27 +2,22 @@
 # Introduction
 
 HMoRA is a fine-tuning method for LLMs that combines LoRA and MoE.
+We provide new auxiliary functions to ensure the balance and certainty of routing. 
+The structure of HMoRA can be flexibly configured, 
+incorporating features such as routing sharing, 
+Hydra LoRA, and Mix LoRA (where partial weights are only fine-tuned using LoRA).
 The base models currently supported include:
 - BLOOM
 - LLaMA, LLaMA 2, LLaMA 3, LLaMA 3.1
 - Qwen2
 
-Here, we provide an example HMoRA training script `example_train.py` and a mini training data 
-(each example in training data consists of a source text and a target text). 
-The training script provided is written for Qwen2. 
-Fine-tuning other base LLMs requires adjusting the input and output format 
-according to the specific tokens of the LLM. 
-We also provide code in `generate.ipynb` that demonstrates how 
-to load the saved HMoRA checkpoint and perform generation.
-
-# Environment
-
-The main Python libraries and versions we use are as follows:
-```
-pytorch 2.0.1
-transformers 4.44.2
-datasets 2.18.0
-```
+The core modules of HMoRA are located in the `hmora` directory. 
+In addition, we provide an example HMoRA training script, 
+`example_train.py`, along with sample training data, 
+where each example consists of a `source` field and a `target` field. 
+The provided training script is specifically designed for Qwen 2. 
+Fine-tuning other base LLMs will require modifications to the prompt format and specific tokens. 
+Furthermore, we include code in `generate.ipynb` that illustrates how to load the saved HMoRA checkpoint and perform text generation.
 
 # Quick Start
 
@@ -91,3 +86,12 @@ description of parameters:
 - `label_smoothing`: label smoothing.
 - `warmup_steps`: warmup steps.
 - `schedule_name`: learning rate schedule name.
+
+# Environment
+
+The main Python libraries and versions we use are as follows:
+```
+pytorch 2.0.1
+transformers 4.44.2
+datasets 2.18.0
+```

@@ -1,15 +1,16 @@
+import json
+import os
+import re
+import types
+from typing import Optional
+
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import PreTrainedModel, Qwen2Model
-import json
-import math
-from typing import Dict, Optional, Tuple, Union
-import types
-import os
-import re
-import copy
 from peft import PeftModel
+from transformers import PreTrainedModel
+
 from .config import (
     HMoRAConfig,
     TARGET_MODULE_TYPE
@@ -320,6 +321,7 @@ class MoRa(nn.Module):
                 torch.empty((self.rank * self.num_experts, self.in_features), dtype=self.dtype_))
         self.mora_b = nn.Parameter(
             torch.empty((self.out_features, self.rank * self.num_experts), dtype=self.dtype_))
+        # rs_lora scaling
         self.scaling = config.lora_alpha / math.sqrt(config.lora_r)
         self.reset_parameters()
 
@@ -347,6 +349,7 @@ class LoRA(nn.Module):
         self.dtype_ = config.torch_dtype
         self.dropout_tate = config.dropout
         self.dropout = nn.Dropout(config.dropout)
+        # rs_lora scaling
         self.scaling = config.lora_alpha / math.sqrt(config.lora_r)
         self.rank = config.lora_r
         self.lora_a = nn.Parameter(
@@ -390,7 +393,7 @@ class AdapterLinear(nn.Module):
         else:
             self.mora = MoRa(base_layer, config)
         # routers
-        self.use_cache = use_cache
+        self.use_cache = use_cache # for router sharing
         self.router = router
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
@@ -399,8 +402,10 @@ class AdapterLinear(nn.Module):
             return self.lora(hidden_states, result)
         else:
             if self.use_cache:
+                # sharing router, the gate values has been calculated
                 gate = self.router.get_routing_weight()
             else:
+                # calculate gate values
                 gate = self.router(hidden_states)
             result = F.linear(hidden_states, self.weight, self.bias)
             return self.mora(hidden_states, gate, result)
@@ -419,6 +424,7 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         # x shape: (batch_size, seq_len, hidden_size)
+        # for left padding position encoding of task encoder
         return x + self.pe[:, -x.size(1):, :]
 
 
@@ -451,6 +457,7 @@ class TaskEncoder(nn.Module):
         src_key_padding_mask = src_key_padding_mask == 0
         output = self.transformer_encoder(src, src_key_padding_mask=src_key_padding_mask)
         sentence_embedding = output[-1]
+        # take the output of the last token as task presentation
         return sentence_embedding
 
 

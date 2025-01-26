@@ -62,7 +62,7 @@ def create_scheduler(optimizer, args):
 
 def format_source(source, system_prompt="You are a helpful assistant."):
     prefix = ('<|im_start|>system\n{system_prompt}\n<|im_end|>\n'
-              '<|im_start|>human\n{user_input}\n<|im_end|>\n<|im_start|>assistant\n')
+              '<|im_start|>user\n{user_input}\n<|im_end|>\n<|im_start|>assistant\n')
     return prefix.format(system_prompt=system_prompt, user_input=source)
 
 
@@ -83,7 +83,7 @@ def train(model: PeftModel,
     bar = tqdm(total=args.max_steps, ncols=150)
 
     def take_step(batched_source):
-
+        nonlocal loss_list
         # div loss for task router
         if model.task_encoder is not None and model.router_manager.use_div_loss:
             prefix_tensors = tokenizer(batched_source, padding=True, truncation=True,
