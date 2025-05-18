@@ -1,6 +1,7 @@
 # HMoRA
 # Introduction
 
+[Paper ICLR 2025](https://openreview.net/forum?id=lTkHiXeuDl)
 HMoRA is a fine-tuning method for LLMs that combines LoRA and MoE.
 We provide new auxiliary functions to ensure the balance and certainty of routing. 
 The structure of HMoRA can be flexibly configured, 
