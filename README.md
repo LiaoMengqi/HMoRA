@@ -2,6 +2,16 @@
 # Introduction
 
 [Paper ICLR 2025](https://openreview.net/forum?id=lTkHiXeuDl)
+
+```bib
+@inproceedings{liao2025hmora,
+  title={HMoRA: Making LLMs More Effective with Hierarchical Mixture of LoRA Experts},
+  author={Liao, Mengqi and Chen, Wei and Shen, Junfeng and Guo, Shengnan and Wan, Huaiyu},
+  booktitle={The Thirteenth International Conference on Learning Representations},
+  year={2025}
+}
+```
+
 HMoRA is a fine-tuning method for LLMs that combines LoRA and MoE.
 We provide new auxiliary functions to ensure the balance and certainty of routing. 
 The structure of HMoRA can be flexibly configured, 
