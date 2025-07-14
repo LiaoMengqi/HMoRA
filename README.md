@@ -1,4 +1,8 @@
 # HMoRA
+
+# News
+- [25/07/14] A new Multi-LoRA Adapter Reinforcement learning (RL) framework has been open sourced. [AdRE](https://github.com/LiaoMengqi/AdRE)
+
 # Introduction
 
 [Paper ICLR 2025](https://openreview.net/forum?id=lTkHiXeuDl)
