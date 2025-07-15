@@ -37,6 +37,16 @@ def load_dataset(dataset: list[str], data_type: list[str], eval_batch_size: int)
                 "parquet", split="train", data_files=dataset[i]
             )
             data = data.map(format_openbookqa)
+        elif data_type[i] == "boolq":
+            data = datasets.load_dataset(
+                "parquet", split="train", data_files=dataset[i]
+            )
+            data = data.map(format_boolq)
+        elif data_type[i] == "piqa":
+            data = datasets.load_dataset(
+                "parquet", split="train", data_files=dataset[i]
+            )
+            data = data.map(format_piqa)
         else:
             raise ValueError(f"valid_data_type not supported!")
         data = remove_column(data)
@@ -124,9 +134,8 @@ def format_commonsenseqa(example):
 
 
 def format_openbookqa(example):
-    prompt = "Consider the fact and answer the following question by selecting the correct option:\n"
-    prompt += "Fact: " + example["fact1"] + ".\n"
-    prompt += "Question: " + example["question_stem"] + "\n"
+    prompt = "Please choose the correct answer to the question: "
+    prompt += example["question_stem"] + "\n"
     prompt += "Options:\n"
     for i, choice in enumerate(example["choices"]["text"]):
         prompt += choices[i] + ". " + choice + "\n"
@@ -134,6 +143,37 @@ def format_openbookqa(example):
     example["source"] = prompt
     example["target"] = example["answerKey"]
     example["target_id"] = choices.index(example["answerKey"])
+    example["subject"] = "openbookqa"  # 添加subject字段
+    return example
+
+
+def format_boolq(example):
+    prompt = "Please answer the following question with true or false:\n"
+    prompt += "Question: " + example["question"] + "\n"
+    prompt += "Options:\n"
+    prompt += "A. true\n"
+    prompt += "B. false\n"
+    prompt += "Answer: "
+    example["source"] = prompt
+    # BoolQ的答案是布尔值，需要转换为A/B格式
+    example["target"] = "A" if example["answer"] else "B"
+    example["target_id"] = 0 if example["answer"] else 1
+    example["subject"] = "boolq"  # 添加subject字段
+    return example
+
+
+def format_piqa(example):
+    prompt = "Below is a common task along with two possible solutions. Please select the appropriate solution to achieve the task:\n"
+    prompt += "Task: " + example["goal"] + "\n"
+    prompt += "Options:\n"
+    prompt += "A. " + example["sol1"] + "\n"
+    prompt += "B. " + example["sol2"] + "\n"
+    prompt += "Answer: "
+    example["source"] = prompt
+    # PIQA的label是0或1，需要转换为A/B格式
+    example["target"] = "A" if example["label"] == 0 else "B"
+    example["target_id"] = example["label"]
+    example["subject"] = "piqa"  # 添加subject字段
     return example
 
 

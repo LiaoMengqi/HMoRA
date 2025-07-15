@@ -48,6 +48,18 @@ def main(args):
         from utils.data_process import format_arc
         valid_dataset = datasets.load_dataset('parquet', split=args.split, data_files=args.dataset)
         valid_dataset = valid_dataset.map(format_arc)
+    elif args.valid_data_type == 'boolq':
+        from utils.data_process import format_boolq
+        valid_dataset = datasets.load_dataset('parquet', split=args.split, data_files=args.dataset)
+        valid_dataset = valid_dataset.map(format_boolq)
+    elif args.valid_data_type == 'piqa':
+        from utils.data_process import format_piqa
+        valid_dataset = datasets.load_dataset('parquet', split=args.split, data_files=args.dataset)
+        valid_dataset = valid_dataset.map(format_piqa)
+    elif args.valid_data_type == 'openbookqa':
+        from utils.data_process import format_openbookqa
+        valid_dataset = datasets.load_dataset('parquet', split=args.split, data_files=args.dataset)
+        valid_dataset = valid_dataset.map(format_openbookqa)
     else:
         raise ValueError(f'valid_data_type {args.valid_data_type} not supported!')
     from utils.data_process import remove_column

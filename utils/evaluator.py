@@ -42,7 +42,7 @@ def evaluate(model: PreTrainedModel,
     we take the logits of the last token of the option and the question text, and then take the argmax to get the answer.
     """
     option_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-    num_option = {'mmlu': 4, 'mmlu_pro': 10, 'arc_e': 4, 'arc_c': 4, 'openbookqa': 4, 'swag': 4, 'commonsenseqa': 5}
+    num_option = {'mmlu': 4, 'mmlu_pro': 10, 'arc_e': 4, 'arc_c': 4, 'openbookqa': 4, 'swag': 4, 'commonsenseqa': 5, 'boolq': 2, 'piqa': 2}
 
     option_index = tokenizer(option_list[:num_option[data_type]],
                              return_tensors='pt', add_special_tokens=False).input_ids.squeeze().to(device)
